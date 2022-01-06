@@ -61,5 +61,58 @@ describe('chapter 2', () => {
         expect(eplisonEquals(x + y, 0.3)).to.equal(true);
       });
     });
-  })
-})
+  }),
+  describe('reference', () => {
+    class Dog {
+      constructor(public name: string) {}
+    }
+    
+    it('two references should point to the same instance', () => {
+      let littleGirl = new Dog('Lily');
+      let furryDaughter = littleGirl;
+      
+      expect(littleGirl.name).to.equal(furryDaughter.name);
+      expect(littleGirl).to.equal(furryDaughter);
+      
+      littleGirl.name = 'Lily Harris';
+      expect(furryDaughter.name).to.equal('Lily Harris');
+      expect(littleGirl).to.equal(furryDaughter);
+    })
+  }),
+  describe('associative array', () => {
+    it('should be able to store key value pairs', () => {
+      let array: { [key: string]: string } = {};
+      array['key'] = 'value';
+      expect(array['key']).to.equal('value');
+    }),
+    it('should be able to store multiple key value pairs', () => {
+      let array: { [key: string]: string } = {};
+      array['key1'] = 'value1';
+      array['key2'] = 'value2';
+      expect(array['key1']).to.equal('value1');
+      expect(array['key2']).to.equal('value2');
+    }),
+    describe('TypeScript array', () => {
+      it('should be able to store multiple key value pairs', () => {
+        let array: Array<string> = [];
+        array.push('value1');
+        array.push('value2');
+        expect(array[0]).to.equal('value1');
+        expect(array[1]).to.equal('value2');
+      }),
+      it('should be able to store arbitrary key value pairs', () => {
+        let array: Array<string> = [];
+        array[100] = 'value1';
+        array[42] = 'value2';
+        
+        expect(array[100]).to.equal('value1');
+        expect(array[42]).to.equal('value2');
+        
+        expect(array.length).to.not.equal(2);
+        expect(array.length).to.equal(101);
+        expect(array[0]).to.equal(undefined);
+        expect(array[8]).to.equal(undefined);
+      });
+    });
+  });
+});
