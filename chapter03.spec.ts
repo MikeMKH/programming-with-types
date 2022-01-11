@@ -202,5 +202,127 @@ describe('chapter 3', () => {
         });
       });
     });
+  }),
+  describe('visitor pattern', () => {
+    describe('naive', () => {
+      class Renderer {}
+      class Reader {}
+      
+      interface DocumentItem {
+        render(renderer: Renderer): void;
+        read(reader: Reader): void;
+      }
+      
+      class Paragraph implements DocumentItem {
+        render(renderer: Renderer): void {}
+        
+        read(reader: Reader): void {}
+      }
+      
+      class Picture implements DocumentItem {
+        render(renderer: Renderer): void {}
+        
+        read(reader: Reader): void {}
+      }
+      
+      it('should render items', () => {
+        const docs: DocumentItem[] = [new Paragraph(), new Picture()];
+        const renderer = new Renderer();
+        docs.forEach(doc => doc.render(renderer));
+      });
+    }),
+    describe('oo pattern', () => {
+      interface Visitor {
+        visitParagraph(): void;
+        visitPicture(): void;
+      }
+      
+      class Renderer implements Visitor {
+        visitParagraph(): void {}
+        visitPicture(): void {}
+      }
+      
+      class Reader implements Visitor {
+        visitParagraph(): void {}
+        visitPicture(): void {}
+      }
+      
+      interface DocumentItem {
+        accept(visitor: Visitor): void;
+      }
+      
+      class Paragraph implements DocumentItem {
+        accept(visitor: Visitor): void {
+          visitor.visitParagraph();
+        }
+      }
+      
+      class Picture implements DocumentItem {
+        accept(visitor: Visitor): void {
+          visitor.visitPicture();
+        }
+      }
+      
+      it('should render items', () => {
+        const docs: DocumentItem[] = [new Paragraph(), new Picture()];
+        const renderer = new Renderer();
+        docs.forEach(doc => doc.accept(renderer));
+      });
+    }),
+    describe('variant pattern', () => {
+      class Variant<T1, T2> {
+        readonly value: T1 | T2;
+        readonly index: number;
+        
+        constructor(value: T1 | T2, index: number) {
+          this.value = value;
+          this.index = index;
+        }
+        
+        static make1<T1, T2>(value: T1): Variant<T1, T2> {
+          return new Variant<T1, T2>(value, 0);
+        }
+        
+        static make2<T1, T2>(value: T2): Variant<T1, T2> {
+          return new Variant<T1, T2>(value, 1);
+        }
+      }
+      
+      function visit<T1, T2>(
+        variant: Variant<T1, T2>,
+        visitor1: (value: T1) => void,
+        visitor2: (value: T2) => void,
+      ): void {
+        switch (variant.index) {
+          case 0: visitor1(<T1>variant.value); break;
+          case 1: visitor2(<T2>variant.value); break;
+          default: throw new Error('Invalid variant');
+        }
+      }
+      
+      class Renderer {
+        renderParagraph(paragraph: Paragraph): void {}
+        renderPicture(picture: Picture): void {}
+      }
+      
+      class Reader {
+        readParagraph(paragraph: Paragraph): void {}
+        readPicture(picture: Picture): void {}
+      }
+      
+      class Paragraph {}
+      class Picture {}
+      
+      it('should render items', () => {
+        const docs: Variant<Paragraph, Picture>[] = [
+          Variant.make1(new Paragraph()), Variant.make2(new Picture())];
+        const renderer = new Renderer();
+        docs.forEach(doc =>
+          visit(
+            doc,
+            doc => renderer.renderParagraph(doc),
+            doc => renderer.renderPicture(doc)));
+      });
+    })
   })
 });
