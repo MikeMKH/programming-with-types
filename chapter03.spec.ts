@@ -323,6 +323,39 @@ describe('chapter 3', () => {
             doc => renderer.renderParagraph(doc),
             doc => renderer.renderPicture(doc)));
       });
-    })
-  })
+    });
+  }),
+  describe('algebraic data types', () => {
+    describe('product types', () => {
+      type A = 1 | 2;
+      type B = "a" | "b";
+      type AB = [A, B];
+      
+      it('should be able to make a tuple A x B', () => {
+        const ab: AB = [1, "a"];
+        
+        expect(ab).to.deep.equal([1, "a"]);
+        
+        expect(typeof ab).to.equal('object');
+        expect(typeof ab[0]).to.equal('number');
+        expect(typeof ab[1]).to.equal('string'); 
+      });
+    }),
+    describe('sum types', () => {
+      type A = 1 | 2;
+      type B = "a" | "b";
+      type AB = A | B;
+      
+      it('should be able to make a sum type A + B', () => {
+        const a: AB = 1;
+        const b: AB = "b";
+        
+        expect(a).to.equal(1);
+        expect(b).to.equal("b");
+        
+        expect(typeof a).to.equal('number');
+        expect(typeof b).to.equal('string');
+      });
+    });
+  });
 });
