@@ -133,5 +133,71 @@ describe('chapter 4', () => {
         });
       });
     });
-  })
+  }),
+  describe('adding type information', () => {
+    describe('explicit typing', () => {
+      it('should throw a runtime error if it cannot be cast', () => {
+        class A {
+          foo(): void {
+            // ...
+          }
+        }
+        
+        class B {}
+        
+        let b: B = new B();
+        let fakeA: A = <A><unknown>b;
+        expect(() => fakeA.foo()).to.throw(TypeError);
+      });
+    }),
+    describe('upcast', () => {
+      it('should not throw a runtime exception', () => {
+        class A {
+          foo(): void {
+            // ...
+          }
+        }
+        
+        class B extends A {}
+        
+        let b: B = new B();
+        let a: A = <A>b;
+        expect(() => a.foo()).to.not.throw(TypeError);
+      })
+    }),
+    describe('downcast', () => {
+      it('should throw a runtime exception', () => {
+        class A {
+          foo(): void {
+            // ...
+          }
+        }
+        
+        class B extends A {
+          bar(): void {
+            // ...
+          }
+        }
+        
+        let a: A = new A();
+        let b: B = <B>a;
+        expect(() => b.foo()).to.not.throw(TypeError);
+        expect(() => b.bar()).to.throw(TypeError);
+      });
+    }),
+    describe('widening cast', () => {
+      it('should widening to large type', () => {
+        let a: number = 123;
+        let b: bigint = <bigint><unknown>a;
+        expect(b).to.equal(123);
+      });
+    }),
+    describe('narrowing cast', () => {
+      it('should not narrow to smaller type', () => {
+        let a: bigint = BigInt(123);
+        let b: number = <number><unknown>a;
+        expect(b).to.equal(BigInt(123));
+      });
+    });
+  });
 });
