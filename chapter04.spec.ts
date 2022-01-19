@@ -199,5 +199,95 @@ describe('chapter 4', () => {
         expect(b).to.equal(BigInt(123));
       });
     });
+  }),
+  describe('hiding and restoring type information', () => {
+    describe('heterogenous collections', () => {
+      describe('interface', () => {
+        
+        interface IDocument {
+          print(): void;
+        }
+        
+        class Paragraph implements IDocument {
+          print(): void {
+            // ...
+          }
+        }
+        
+        class Picture implements IDocument {
+          print(): void {
+            // ...
+          }
+        }
+        
+        class Document {
+          readonly content: IDocument[];
+          constructor(content: IDocument[]) {
+            this.content = content;
+          }
+        }
+        
+        it('should be able to use the IDocument methods', () => {
+          let doc: Document = new Document([new Paragraph(), new Picture()]);
+          expect(() => doc.content.forEach(c => c.print())).to.not.throw(Error);
+        });
+      }),
+      describe('sum type', () => {
+        class Paragraph {
+          print(): void {
+            // ...
+          }
+        }
+        
+        class Picture {
+          print(): void {
+            // ...
+          }
+        }
+        
+        class Document {
+          readonly content: (Paragraph | Picture)[];
+          constructor(content: (Paragraph | Picture)[]) {
+            this.content = content;
+          }
+        }
+        
+        it('should be able to use the common methods', () => {
+          let doc: Document = new Document([new Paragraph(), new Picture()]);
+          expect(() => doc.content.forEach(c => c.print())).to.not.throw(Error);
+        });
+      });
+    }),
+    describe('serialization', () => {
+      describe('Foo', () => {
+        class Foo {
+          readonly qux: string;
+          constructor(qux: string) {
+            this.qux = qux;
+          }
+          
+          bar(): number {
+            return 42;
+          }
+        }
+        
+        it('should be serializable', () => {
+          let foo: Foo = new Foo("Lily");
+          let serialized: string = JSON.stringify(foo);
+          expect(serialized).to.equal('{"qux":"Lily"}'); 
+        }),
+        it('should be deserializable', () => {
+          let foo: Foo = JSON.parse('{"qux":"Lily"}');
+          
+          expect(foo.qux).to.equal("Lily");
+          expect(() => foo.bar()).to.throw(Error);
+          
+          let hydrated: Foo = Object.assign(new Foo(""), foo);
+          
+          expect(hydrated.qux).to.equal("Lily");
+          expect(hydrated.bar()).to.equal(42);
+        });
+      });
+    });
   });
 });
