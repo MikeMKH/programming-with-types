@@ -59,5 +59,107 @@ describe('chapter 5', () => {
         expect(bar.service(foo, kelsey)).to.equal('kelsey');
       });
     });
+  }),
+  describe('state machine', () => {
+    describe('switch statement', () => {
+      enum State {
+        Open,
+        Close,
+      }
+      
+      class Connection {
+        private state: State = State.Close;
+        private doProcess: () => string = this.processClosedConnection;
+        
+        public process(): string {
+          switch (this.state) {
+            case State.Open:
+              this.state = State.Close;
+              this.doProcess = this.processOpenConnection;
+              break;
+            case State.Close:
+              this.state = State.Open;
+              this.doProcess = this.processClosedConnection;
+              break;
+          }
+          return this.doProcess();
+        }
+        
+        private processOpenConnection(): string {
+          return 'open';
+        }
+        
+        private processClosedConnection(): string {
+          return 'closed';
+        }
+      }
+      
+      it('should return the correct state', () => {
+        const connection = new Connection();
+        expect(connection.process()).to.equal('closed');
+        expect(connection.process()).to.equal('open');
+        expect(connection.process()).to.equal('closed');
+      });
+    }),
+    describe('functional', () => {
+      class Connection {
+        private result: string = "";
+        private doProcess = this.processClosedConnection;
+        
+        public process(): string {
+          this.doProcess = this.doProcess();
+          return this.result;
+        }
+        
+        private processOpenConnection() {
+          this.result = 'open';
+          return this.processClosedConnection;
+        }
+        
+        private processClosedConnection() {
+          this.result = 'closed';
+          return this.processOpenConnection;
+        }
+      }
+      
+      it('should return the correct state', () => {
+        const connection = new Connection();
+        expect(connection.process()).to.equal('closed');
+        expect(connection.process()).to.equal('open');
+        expect(connection.process()).to.equal('closed');
+      });
+    }),
+    describe('sum type', () => {
+      class Connection {
+        private processor: OpenConnection | CloseConnection = new CloseConnection();
+        
+        public process(): string {
+          const result = this.processor.result;
+          this.processor = this.processor.process();
+          return result;
+        }
+      }
+      
+      class OpenConnection {
+        public result: string = 'open';
+        public process(): OpenConnection | CloseConnection {
+          return new CloseConnection();
+        }
+      }
+      
+      class CloseConnection {
+        public result: string = 'closed';
+        public process(): OpenConnection | CloseConnection {
+          return new OpenConnection();
+        }
+      }
+      
+      it('should return the correct state', () => {
+        const connection = new Connection();
+        expect(connection.process()).to.equal('closed');
+        expect(connection.process()).to.equal('open');
+        expect(connection.process()).to.equal('closed');
+      });
+    })
   })
 });
