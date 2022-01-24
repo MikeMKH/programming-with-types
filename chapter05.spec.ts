@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import { beforeEach } from 'mocha';
 
 describe('chapter 5', () => {
   describe('strategy pattern', () => {
@@ -159,6 +160,57 @@ describe('chapter 5', () => {
         expect(connection.process()).to.equal('closed');
         expect(connection.process()).to.equal('open');
         expect(connection.process()).to.equal('closed');
+      });
+    });
+  }),
+  describe('evaluation', () => {
+    let wasConstructed = false;
+    class Spy {
+      constructor() {
+        wasConstructed = true;
+      }
+    }
+    
+    class Foo {}
+    
+    beforeEach(() => {
+      wasConstructed = false;
+    });
+    describe('eager', () => {
+      function bar(pickFirst: boolean, foo: Foo, spy: Spy): Foo | Spy {
+        if (pickFirst) {
+          return foo;
+        } else {
+          return spy;
+        }
+      }
+      
+      it('should call both constructors', () => {  
+        expect(wasConstructed).to.equal(false);
+        bar(true, new Foo(), new Spy());
+        expect(wasConstructed).to.equal(true);
+      });
+    }),
+    describe('lazy', () => {
+      function bar(pickFirst: boolean, f: () => Foo, g: () => Spy): Foo | Spy {
+        if (pickFirst) {
+          return f();
+        } else {
+          return g();
+        }
+      }
+      
+      it('should call only the first constructor until asked for', () => {
+        expect(wasConstructed).to.equal(false);
+        
+        bar(true, () => new Foo(), () => new Spy());
+        expect(wasConstructed).to.equal(false);
+        
+        bar(true, () => new Foo(), () => new Spy());
+        expect(wasConstructed).to.equal(false);
+        
+        bar(false, () => new Foo(), () => new Spy());
+        expect(wasConstructed).to.equal(true);
       });
     })
   })
