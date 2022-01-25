@@ -212,6 +212,110 @@ describe('chapter 5', () => {
         bar(false, () => new Foo(), () => new Spy());
         expect(wasConstructed).to.equal(true);
       });
-    })
-  })
+    });
+  }),
+  describe('higher-order functions', () => {
+    describe('first', () => {
+      function first<T>(values: T[], predicate: (value: T) => boolean): T | undefined {
+        for (const value of values) {
+          if (predicate(value)) {
+            return value;
+          }
+        }
+        return undefined;
+      }
+      
+      it('given true combinator it should return the first value', () => {
+        expect(first([1, 2, 3], () => true)).to.equal(1);
+      }),
+      it('given false combinator it should return undefined', () => {
+        expect(first([1, 2, 3], () => false)).to.equal(undefined);
+      }),
+      it('given a predicate it should return the first value', () => {
+        expect(first([1, 2, 3], (value) => value >= 1)).to.equal(1);
+        expect(first([1, 2, 3], (value) => value === 2)).to.equal(2);
+        expect(first([1, 2, 3], (value) => value >= 3)).to.equal(3);
+      });
+    }),
+    describe('all', () => {
+      function all<T>(values: T[], predicate: (value: T) => boolean): boolean {
+        for (const value of values) {
+          if (!predicate(value)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      
+      it('given true combinator it should return true', () => {
+        expect(all([1, 2, 3], () => true)).to.equal(true);
+      }),
+      it('given false combinator it should return false', () => {
+        expect(all([1, 2, 3], () => false)).to.equal(false);
+      }),
+      it('given a predicate it should return true', () => {
+        expect(all([1, 2, 3], (value) => value >= 1)).to.equal(true);
+        expect(all([1, 2, 3], (value) => value >= 2)).to.equal(false);
+        expect(all([1, 2, 3], (value) => value >= 3)).to.equal(false);
+      });
+    }),
+    describe('any', () => {
+      function any<T>(values: T[], predicate: (value: T) => boolean): boolean {
+        for (const value of values) {
+          if (predicate(value)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      
+      it('given true combinator it should return true', () => {
+        expect(any([1, 2, 3], () => true)).to.equal(true);
+      }),
+      it('given false combinator it should return false', () => {
+        expect(any([1, 2, 3], () => false)).to.equal(false);
+      }),
+      it('given a predicate it should return true', () => {
+        expect(any([1, 2, 3], (value) => value >= 1)).to.equal(true);
+        expect(any([1, 2, 3], (value) => value >= 2)).to.equal(true);
+        expect(any([1, 2, 3], (value) => value >= 3)).to.equal(true);
+      });
+    }),
+    describe('using fold', () => {
+      describe('all', () => {
+        function all<T>(values: T[], predicate: (value: T) => boolean): boolean {
+          return values.reduce((acc: boolean, value: T) => acc && predicate(value), true);
+        }
+        
+        it('given true combinator it should return true', () => {
+          expect(all([1, 2, 3], () => true)).to.equal(true);
+        }),
+        it('given false combinator it should return false', () => {
+          expect(all([1, 2, 3], () => false)).to.equal(false);
+        }),
+        it('given a predicate it should return true', () => {
+          expect(all([1, 2, 3], (value) => value >= 1)).to.equal(true);
+          expect(all([1, 2, 3], (value) => value >= 2)).to.equal(false);
+          expect(all([1, 2, 3], (value) => value >= 3)).to.equal(false);
+        });
+      }),
+      describe('any', () => {
+        function any<T>(values: T[], predicate: (value: T) => boolean): boolean {
+          return values.reduce((acc: boolean, value: T) => acc || predicate(value), false);
+        }
+        
+        it('given true combinator it should return true', () => {
+          expect(any([1, 2, 3], () => true)).to.equal(true);
+        }),
+        it('given false combinator it should return false', () => {
+          expect(any([1, 2, 3], () => false)).to.equal(false);
+        }),
+        it('given a predicate it should return true', () => {
+          expect(any([1, 2, 3], (value) => value >= 1)).to.equal(true);
+          expect(any([1, 2, 3], (value) => value >= 2)).to.equal(true);
+          expect(any([1, 2, 3], (value) => value >= 3)).to.equal(true);
+        });
+      })
+    });
+  });
 });
