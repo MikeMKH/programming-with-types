@@ -282,6 +282,29 @@ describe('chapter 5', () => {
       });
     }),
     describe('using fold', () => {
+      describe('first', () => {
+        function first<T>(values: T[], predicate: (value: T) => boolean): T | undefined {
+          return values.reduce((acc: T | undefined, value: T) => {
+            if (acc === undefined && predicate(value)) {
+              return value;
+            } else {
+              return acc;
+            }
+          }, undefined);
+        }
+        
+        it('given true combinator it should return the first value', () => {
+          expect(first([1, 2, 3], () => true)).to.equal(1);
+        }),
+        it('given false combinator it should return undefined', () => {
+          expect(first([1, 2, 3], () => false)).to.equal(undefined);
+        }),
+        it('given a predicate it should return the first value', () => {
+          expect(first([1, 2, 3], (value) => value >= 1)).to.equal(1);
+          expect(first([1, 2, 3], (value) => value === 2)).to.equal(2);
+          expect(first([1, 2, 3], (value) => value >= 3)).to.equal(3);
+        });
+      }),
       describe('all', () => {
         function all<T>(values: T[], predicate: (value: T) => boolean): boolean {
           return values.reduce((acc: boolean, value: T) => acc && predicate(value), true);
@@ -315,7 +338,47 @@ describe('chapter 5', () => {
           expect(any([1, 2, 3], (value) => value >= 2)).to.equal(true);
           expect(any([1, 2, 3], (value) => value >= 3)).to.equal(true);
         });
-      })
+      }),
+      describe('map', () => {
+        function map<T, U>(values: T[], mapper: (value: T) => U): U[] {
+          return values.reduce((acc: U[], value: T) => {
+            acc.push(mapper(value));
+            return acc;
+          }, []);
+        }
+        
+        it('given identity function as mapper it should return an array given', () => {
+          function identity<T>(value: T) { return value; }
+          
+          expect(map([1, 2, 3], identity)).to.deep.equal([1, 2, 3]);
+          expect(map(['Kelsey', 'Lily'], identity)).to.deep.equal(['Kelsey', 'Lily']);
+        }),
+        it('given a mapper it should return an array of mapped values', () => {
+          expect(map([1, 2, 3], (value) => value * 2)).to.deep.equal([2, 4, 6]);
+        });
+      }),
+      describe('filter', () => {
+        function filter<T>(values: T[], predicate: (value: T) => boolean): T[] {
+          return values.reduce((acc: T[], value: T) => {
+            if (predicate(value)) {
+              acc.push(value);
+            }
+            return acc;
+          }, []);
+        }
+        
+        it('given true combinator it should return an array given', () => {
+          expect(filter([1, 2, 3], () => true)).to.deep.equal([1, 2, 3]);
+        }),
+        it('given false combinator it should return an empty array', () => {
+          expect(filter([1, 2, 3], () => false)).to.deep.equal([]);
+        }),
+        it('given a predicate it should return an array of filtered values', () => {
+          expect(filter([1, 2, 3], (value) => value >= 1)).to.deep.equal([1, 2, 3]);
+          expect(filter([1, 2, 3], (value) => value >= 2)).to.deep.equal([2, 3]);
+          expect(filter([1, 2, 3], (value) => value >= 3)).to.deep.equal([3]);
+        });
+      });
     });
   });
 });
