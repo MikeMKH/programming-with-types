@@ -117,5 +117,100 @@ describe('chapter 6', () => {
         expect(record).to.deep.equal(['Foo', 'Foo']);
       });
     });
+  }),
+  describe('fibonacci sequence', () => {
+    describe('global', () => {
+      let previous: number = 0;
+      let current: number = 1;
+      
+      function next(): number {
+        const nextValue = previous + current;
+        previous = current;
+        current = nextValue;
+        return previous;
+      }
+      
+      it('should return the expected values', () => {
+        expect(next()).to.equal(1);
+        expect(next()).to.equal(1);
+        expect(next()).to.equal(2);
+        expect(next()).to.equal(3);
+        expect(next()).to.equal(5);
+        expect(next()).to.equal(8);
+      });
+    }),
+    describe('object oriented', () => {
+      class Fibonacci {
+        private previous: number = 0;
+        private current: number = 1;
+        
+        next(): number {
+          const nextValue = this.previous + this.current;
+          this.previous = this.current;
+          this.current = nextValue;
+          return this.previous;
+        }
+      }
+      
+      it('should return the expected values', () => {
+        const fibonacci = new Fibonacci();
+        expect(fibonacci.next()).to.equal(1);
+        expect(fibonacci.next()).to.equal(1);
+        expect(fibonacci.next()).to.equal(2);
+        expect(fibonacci.next()).to.equal(3);
+        expect(fibonacci.next()).to.equal(5);
+        expect(fibonacci.next()).to.equal(8);
+      });
+    }),
+    describe('functional', () => {
+      type Fibonacci = () => number;
+      
+      function makeFibonacci(): Fibonacci {
+        let previous: number = 0;
+        let current: number = 1;
+        
+        return (): number => {
+          const nextValue = previous + current;
+          previous = current;
+          current = nextValue;
+          return previous;
+        }
+      }
+      
+      it('should return the expected values', () => {
+        const fibonacci = makeFibonacci();
+        expect(fibonacci()).to.equal(1);
+        expect(fibonacci()).to.equal(1);
+        expect(fibonacci()).to.equal(2);
+        expect(fibonacci()).to.equal(3);
+        expect(fibonacci()).to.equal(5);
+        expect(fibonacci()).to.equal(8);
+      });
+    }),
+    describe('generator', () => {
+      type Fibonacci = IterableIterator<number>;
+      
+      function* makeFibonacci(): Fibonacci {
+        let previous: number = 0;
+        let current: number = 1;
+        
+        while (true) {
+          yield current;
+          const nextValue = previous + current;
+          previous = current;
+          current = nextValue;
+        }
+      }
+      
+      it('should return the expected values', () => {
+        const fibonacci = makeFibonacci();
+        expect(fibonacci.next().value).to.equal(1);
+        expect(fibonacci.next().value).to.equal(1);
+        expect(fibonacci.next().value).to.equal(2);
+        expect(fibonacci.next().value).to.equal(3);
+        expect(fibonacci.next().value).to.equal(5);
+        expect(fibonacci.next().value).to.equal(8);
+      });
+    })
   })
 })
