@@ -211,6 +211,32 @@ describe('chapter 6', () => {
         expect(fibonacci.next().value).to.equal(5);
         expect(fibonacci.next().value).to.equal(8);
       });
+    });
+  }),
+  describe('asynchronous operations', () => {
+    describe('event driven model', () => {
+      type AsyncFunction = () => void;
+      let queue: AsyncFunction[] = [];
+      
+      function countDown(id: string, results: string[], from: number): void {
+        results.push(`[${id}] ${from}`);
+        if (from > 0) {
+          queue.push(() => countDown(id, results, from - 1));
+        }
+      }
+      
+      it('should execute in order', () => {
+        const results: string[] = [];
+        
+        queue.push(() => countDown('1', results, 2));
+        queue.push(() => countDown('2', results, 2));
+        while (queue.length > 0) {
+          queue.shift()!();
+        }
+        
+        queue.forEach(f => f());
+        expect(results).to.deep.equal(['[1] 2', '[2] 2', '[1] 1', '[2] 1', '[1] 0', '[2] 0']);
+      });
     })
   })
 })
