@@ -225,17 +225,22 @@ describe('chapter 6', () => {
         }
       }
       
+      function processQueue() {
+        while (queue.length > 0) {
+          queue.shift()!();
+        }
+      }
+      
       it('should execute in order', () => {
         const results: string[] = [];
         
         queue.push(() => countDown('1', results, 2));
         queue.push(() => countDown('2', results, 2));
-        while (queue.length > 0) {
-          queue.shift()!();
-        }
+        processQueue();
         
         queue.forEach(f => f());
         expect(results).to.deep.equal(['[1] 2', '[2] 2', '[1] 1', '[2] 1', '[1] 0', '[2] 0']);
+
       });
     })
   })
