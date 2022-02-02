@@ -268,6 +268,30 @@ describe('chapter 6', () => {
           expect(results[1]).to.deep.equal(['[2] 2', '[2] 1', '[2] 0']);
         });
       });
+    }),
+    describe('async / await model', () => {
+      async function countDown(id: string, from: number): Promise<string[]> {
+        let results: string[] = [];
+        const f: ((id: string, from: number) => void) = (id:string, from: number) => {
+          results.push(`[${id}] ${from}`);
+          if (from > 0) {
+            return f(id, from - 1);
+          }
+        }
+        
+        return new Promise((resolve, reject) => {
+          f(id, from);
+          resolve(results);
+        });
+      }
+      
+      it('should execute in order', async () => {
+        const r1 = await countDown('1', 2);
+        const r2 = await countDown('2', 2);
+        
+        expect(r1).to.deep.equal(['[1] 2', '[1] 1', '[1] 0']);
+        expect(r2).to.deep.equal(['[2] 2', '[2] 1', '[2] 0']);
+      })
     })
   })
 })
