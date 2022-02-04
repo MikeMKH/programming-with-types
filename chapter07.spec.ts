@@ -101,6 +101,99 @@ describe('chapter 7', () => {
         // f(bar); // error TS2345: Argument of type 'Bar' is not assignable to parameter of type 'Foo'.
                    // Property '[FooType]' is missing in type 'Bar' but required in type 'Foo'.
       });
+    }),
+    describe('deserializing', () => {
+      class User {
+        name: string;
+        constructor(name: string) {
+          this.name = name;
+        }
+      }
+      
+      function greet(user: User): string {
+        return `Hello, ${user.name}`;
+      }
+      
+      describe('any', () => {
+        function deserializing(input: string): any {
+          return JSON.parse(input);
+        }
+        
+        it('should be possible to deserialize a User', () => {
+          const user = deserializing(`{ "name": "John" }`);
+          expect(user.name).to.equal('John');
+          
+          const greeting = greet(user);
+          expect(greeting).to.equal('Hello, John');
+        }),
+        it('should fail on any empty structure', () => {
+          const user = deserializing(`{}`);
+          expect(user.name).to.equal(undefined);
+          
+          const greeting = greet(user);
+          expect(greeting).to.equal('Hello, undefined');
+        });
+      }),
+      describe('unknown', () => {
+        function deserializing(input: string): unknown {
+          return JSON.parse(input);
+        }
+        
+        function isUser(user: any): user is User {
+          if (user === null || user.name === undefined) {
+            return false;
+          }
+          
+          return typeof user.name === 'string';
+        }
+        
+        it('should be possible to deserialize a User', () => {
+          const user = deserializing(`{ "name": "John" }`);
+          expect(isUser(user)).to.equal(true);
+          
+          if (isUser(user)) {
+            expect(user.name).to.equal('John');
+            const greeting = greet(user);
+            expect(greeting).to.equal('Hello, John');
+          }
+        }),
+        it('should fail on any empty structure', () => {
+          const user = deserializing(`{}`);
+          expect(isUser(user)).to.equal(false);
+          
+          // if (isUser(user)) {
+          //   expect(user.name).to.equal(undefined);
+            
+          //   const greeting = greet(user);
+          //   expect(greeting).to.equal('Hello, undefined');
+          // }
+        });
+      });
+    }),
+    describe('never', () => {
+      describe('fail', () => {
+        function fail(message: string): never {
+          throw new Error(message);
+        }
+        
+        it('should fail', () => {
+          expect(() => fail('fail')).to.throw('fail');
+        }),
+        it('should be consumable', () => {
+          function greaterThan2Returns42(value: number): number {
+            if (value > 2) {
+              return 42;
+            }
+            
+            fail('fail');
+          }
+          
+          expect(greaterThan2Returns42(3)).to.equal(42);
+          
+          expect(() => greaterThan2Returns42(3)).to.not.throw('fail');
+          expect(() => greaterThan2Returns42(1)).to.throw('fail');
+        });
+      });
     })
   })
 });
