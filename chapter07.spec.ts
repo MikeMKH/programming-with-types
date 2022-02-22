@@ -3,6 +3,26 @@ import { expect } from 'chai'
 declare const FooType: unique symbol;
 declare const BarType: unique symbol;
 
+declare const TriangleType: unique symbol;
+class Triangle {
+  [TriangleType]: void;
+}
+
+declare const SquareType: unique symbol;
+class Square {
+  [SquareType]: void;
+}
+declare const CircleType: unique symbol;
+class Circle {
+  [CircleType]: void;
+}
+
+declare function makeShape_ts(): Triangle | Square;
+declare function draw_tsc(shape: Triangle | Square | Circle): void;
+
+declare function makeShape_tsc(): Triangle | Square | Circle;
+declare function draw_ts(shape: Triangle | Square): void;
+
 describe('chapter 7', () => {
   describe('subtyping', () => {
     describe('nominal subtyping', () => {
@@ -194,6 +214,42 @@ describe('chapter 7', () => {
           expect(() => greaterThan2Returns42(1)).to.throw('fail');
         });
       });
+    });
+  }),
+  describe('substitutions', () => {
+    describe('subtyping and sum types', () => {
+      // declare const TriangleType: unique symbol; // at top of file
+      // class Triangle {
+      //   [TriangleType]: void;
+      // }
+      
+      // declare const SquareType: unique symbol; // at top of file
+      // class Square {
+      //   [SquareType]: void;
+      // }
+      
+      // declare const CircleType: unique symbol; // at top of file
+      // class Circle {
+      //   [CircleType]: void;
+      // }
+      
+      it('Triangle | Square | Circle can accept Triangle | Square', () => {
+        // declare function makeShape_ts(): Triangle | Square; // at top of file
+        // declare function draw_tsc(shape: Triangle | Square | Circle): void; // at top of file
+        
+        expect(() => draw_tsc(makeShape_ts())).to.throw('not define');
+      }),
+      it('Triangle | Square cannot accept Triangle | Square | Circle', () => {
+        // declare function makeShape_tsc(): Triangle | Square | Circle; // at top of file
+        // declare function draw_ts(shape: Triangle | Square): void; // at top of file
+        
+        /*
+        error TS2345: Argument of type 'Triangle | Square | Circle' is not assignable to parameter of type 'Triangle | Square'.
+        Type 'Circle' is not assignable to type 'Triangle | Square'.
+        Property '[SquareType]' is missing in type 'Circle' but required in type 'Square'.
+        */
+        // draw_ts(makeShape_tsc());
+      })
     })
   })
 });
