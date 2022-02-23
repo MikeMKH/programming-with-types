@@ -14,7 +14,28 @@ class Square {
 }
 declare const CircleType: unique symbol;
 class Circle {
-  [CircleType]: void;
+  [CircleType]: void; 
+}
+
+class Shape {}
+
+declare const HeartType: unique symbol;
+class Heart extends Shape {
+  [HeartType]: void;
+}
+
+class LinkedList<T> {
+  value: T;
+  next: LinkedList<T> | undefined = undefined;
+  
+  constructor(value: T) {
+    this.value = value;
+  }
+  
+  append(value: T): LinkedList<T> {
+    this.next = new LinkedList<T>(value);
+    return this.next;
+  }
 }
 
 declare function makeShape_ts(): Triangle | Square;
@@ -22,6 +43,12 @@ declare function draw_tsc(shape: Triangle | Square | Circle): void;
 
 declare function makeShape_tsc(): Triangle | Square | Circle;
 declare function draw_ts(shape: Triangle | Square): void;
+
+declare function makeHearts(): Heart[];
+declare function drawShapes(shapes: Shape[]): void;
+
+declare function makeLinkedListHearts(): LinkedList<Heart>;
+declare function drawLinkedListShapes(shapes: LinkedList<Shape>): void;
 
 describe('chapter 7', () => {
   describe('subtyping', () => {
@@ -218,37 +245,24 @@ describe('chapter 7', () => {
   }),
   describe('substitutions', () => {
     describe('subtyping and sum types', () => {
-      // declare const TriangleType: unique symbol; // at top of file
-      // class Triangle {
-      //   [TriangleType]: void;
-      // }
-      
-      // declare const SquareType: unique symbol; // at top of file
-      // class Square {
-      //   [SquareType]: void;
-      // }
-      
-      // declare const CircleType: unique symbol; // at top of file
-      // class Circle {
-      //   [CircleType]: void;
-      // }
-      
       it('Triangle | Square | Circle can accept Triangle | Square', () => {
-        // declare function makeShape_ts(): Triangle | Square; // at top of file
-        // declare function draw_tsc(shape: Triangle | Square | Circle): void; // at top of file
-        
         expect(() => draw_tsc(makeShape_ts())).to.throw('not define');
       }),
       it('Triangle | Square cannot accept Triangle | Square | Circle', () => {
-        // declare function makeShape_tsc(): Triangle | Square | Circle; // at top of file
-        // declare function draw_ts(shape: Triangle | Square): void; // at top of file
-        
         /*
         error TS2345: Argument of type 'Triangle | Square | Circle' is not assignable to parameter of type 'Triangle | Square'.
         Type 'Circle' is not assignable to type 'Triangle | Square'.
         Property '[SquareType]' is missing in type 'Circle' but required in type 'Square'.
         */
         // draw_ts(makeShape_tsc());
+      })
+    }),
+    describe('subtyping and collections', () => {
+      it ('array in TypeScript are covariant', () => {
+        expect(() => drawShapes(makeHearts())).to.throw('not define');
+      }),
+      it('generic collection in TypeScript are covariant', () => {
+        expect(() => drawLinkedListShapes(makeLinkedListHearts())).to.throw('not define');
       })
     })
   })
