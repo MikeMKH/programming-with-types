@@ -263,6 +263,23 @@ describe('chapter 7', () => {
       }),
       it('generic collection in TypeScript are covariant', () => {
         expect(() => drawLinkedListShapes(makeLinkedListHearts())).to.throw('not define');
+      });
+    }),
+    describe('subtyping and function return types', () => {
+      function makeHeart(): Heart { return new Heart(); }
+      function makeShape(): Shape { return new Shape(); }
+      
+      function useFactory(factory: () => Shape): Shape {
+        return factory();
+      }
+      
+      it('should be possible to use a factory function', () => {
+        const shape1 = useFactory(makeHeart);
+        expect(shape1).to.be.instanceOf(Heart);
+        
+        const shape2 = useFactory(makeShape);
+        expect(shape2).to.be.instanceOf(Shape);
+        expect(shape2).to.not.be.instanceOf(Heart);
       })
     })
   })
