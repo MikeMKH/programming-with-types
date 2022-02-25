@@ -22,6 +22,7 @@ class Shape {}
 declare const HeartType: unique symbol;
 class Heart extends Shape {
   [HeartType]: void;
+  beat: string = 'beating';
 }
 
 class LinkedList<T> {
@@ -280,7 +281,41 @@ describe('chapter 7', () => {
         const shape2 = useFactory(makeShape);
         expect(shape2).to.be.instanceOf(Shape);
         expect(shape2).to.not.be.instanceOf(Heart);
-      })
+      });
+    }),
+    describe('subtyping and function parameters', () => {
+      function useHeart(heart: Heart): string {
+        expect(heart).to.be.instanceOf(Heart);
+        return 'heart';
+      }
+      
+      function useShape(shape: Shape): string {
+        expect(shape).to.be.instanceOf(Shape);
+        return 'shape';
+      }
+      
+      function render(heart: Heart, useFunc: (argument: Heart) => string): string {
+        return useFunc(heart);
+      }
+      it('Heart => string and Shape => string should be contravariant', () => {
+        expect(render(new Heart(), useHeart)).to.equal('heart');
+        // expect(render(new Shape(), useShape)).to.equal('shape'); // error TS2345: Argument of type 'Shape' is not assignable to parameter of type 'Heart'. Property '[HeartType]' is missing in type 'Shape' but required in type 'Heart'
+        expect(render(new Heart(), useShape)).to.equal('shape');
+      })/*,
+      // not working
+      it('TypeScript is bivariant', () => {
+        function beatHeart(heart: Heart): string {
+          expect(heart.beat).to.equal('beating');
+          return 'functional';
+        }
+        
+        function apply(shape: Shape, useFunc: (argument: Shape) => string): string {
+          return useFunc(shape);
+        }
+        
+        expect(apply(new Heart(), beatHeart)).to.equal('functional');
+        expect(apply(new Shape(), beatHeart)).to.equal('functional');
+      })*/
     })
   })
 });
