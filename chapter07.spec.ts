@@ -9,7 +9,6 @@ declare const SquareType: unique symbol;
 declare const CircleType: unique symbol;
 declare const HeartType: unique symbol;
 
-
 describe('chapter 7', () => {
   describe('subtyping', () => {
     describe('nominal subtyping', () => {
