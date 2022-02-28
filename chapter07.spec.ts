@@ -1,55 +1,14 @@
 import { expect } from 'chai'
+import * as exp from 'constants';
 
 declare const FooType: unique symbol;
 declare const BarType: unique symbol;
 
 declare const TriangleType: unique symbol;
-class Triangle {
-  [TriangleType]: void;
-}
-
 declare const SquareType: unique symbol;
-class Square {
-  [SquareType]: void;
-}
 declare const CircleType: unique symbol;
-class Circle {
-  [CircleType]: void; 
-}
-
-class Shape {}
-
 declare const HeartType: unique symbol;
-class Heart extends Shape {
-  [HeartType]: void;
-  beat: string = 'beating';
-}
 
-class LinkedList<T> {
-  value: T;
-  next: LinkedList<T> | undefined = undefined;
-  
-  constructor(value: T) {
-    this.value = value;
-  }
-  
-  append(value: T): LinkedList<T> {
-    this.next = new LinkedList<T>(value);
-    return this.next;
-  }
-}
-
-declare function makeShape_ts(): Triangle | Square;
-declare function draw_tsc(shape: Triangle | Square | Circle): void;
-
-declare function makeShape_tsc(): Triangle | Square | Circle;
-declare function draw_ts(shape: Triangle | Square): void;
-
-declare function makeHearts(): Heart[];
-declare function drawShapes(shapes: Shape[]): void;
-
-declare function makeLinkedListHearts(): LinkedList<Heart>;
-declare function drawLinkedListShapes(shapes: LinkedList<Shape>): void;
 
 describe('chapter 7', () => {
   describe('subtyping', () => {
@@ -147,7 +106,7 @@ describe('chapter 7', () => {
         }
         
         // f(bar); // error TS2345: Argument of type 'Bar' is not assignable to parameter of type 'Foo'.
-                   // Property '[FooType]' is missing in type 'Bar' but required in type 'Foo'.
+        // Property '[FooType]' is missing in type 'Bar' but required in type 'Foo'.
       });
     }),
     describe('deserializing', () => {
@@ -210,44 +169,106 @@ describe('chapter 7', () => {
           expect(isUser(user)).to.equal(false);
           
           // if (isUser(user)) {
-          //   expect(user.name).to.equal(undefined);
+            //   expect(user.name).to.equal(undefined);
             
-          //   const greeting = greet(user);
-          //   expect(greeting).to.equal('Hello, undefined');
-          // }
+            //   const greeting = greet(user);
+            //   expect(greeting).to.equal('Hello, undefined');
+            // }
+          });
+        });
+      }),
+      describe('never', () => {
+        describe('fail', () => {
+          function fail(message: string): never {
+            throw new Error(message);
+          }
+          
+          it('should fail', () => {
+            expect(() => fail('fail')).to.throw('fail');
+          }),
+          it('should be consumable', () => {
+            function greaterThan2Returns42(value: number): number {
+              if (value > 2) {
+                return 42;
+              }
+              
+              fail('fail');
+            }
+            
+            expect(greaterThan2Returns42(3)).to.equal(42);
+            
+            expect(() => greaterThan2Returns42(3)).to.not.throw('fail');
+            expect(() => greaterThan2Returns42(1)).to.throw('fail');
+          });
         });
       });
     }),
-    describe('never', () => {
-      describe('fail', () => {
-        function fail(message: string): never {
-          throw new Error(message);
-        }
-        
-        it('should fail', () => {
-          expect(() => fail('fail')).to.throw('fail');
-        }),
-        it('should be consumable', () => {
-          function greaterThan2Returns42(value: number): number {
-            if (value > 2) {
-              return 42;
-            }
-            
-            fail('fail');
-          }
-          
-          expect(greaterThan2Returns42(3)).to.equal(42);
-          
-          expect(() => greaterThan2Returns42(3)).to.not.throw('fail');
-          expect(() => greaterThan2Returns42(1)).to.throw('fail');
-        });
-      });
-    });
-  }),
-  describe('substitutions', () => {
+    describe('substitutions', () => {
+    class Triangle {
+      [TriangleType]: void;
+      name: string = 'Triangle';
+    }
+    
+    class Square {
+      [SquareType]: void;
+      name: string = 'Square';
+    }
+    class Circle {
+      [CircleType]: void; 
+      name: string = 'Circle';
+    }
+    
+    class Shape {
+      name: string = 'Shape';
+    }
+    
+    class Heart extends Shape {
+      [HeartType]: void;
+      name: string = 'Heart';
+      beat: string = 'beating';
+    }
+    
+    class LinkedList<T> {
+      value: T;
+      next: LinkedList<T> | undefined = undefined;
+      
+      constructor(value: T) {
+        this.value = value;
+      }
+      
+      append(value: T): LinkedList<T> {
+        this.next = new LinkedList<T>(value);
+        return this.next;
+      }
+    }
+    
+    
+    
     describe('subtyping and sum types', () => {
+      let spyDraw_tsc: boolean = false;    
+      function draw_tsc(shape: Triangle | Square | Circle): void {
+        spyDraw_tsc = true;
+      }
+      
+      function makeShape_ts(): Triangle | Square {
+        const shape: Triangle | Square = Math.random() < 0.5 ? new Triangle() : new Square();
+        return shape;
+      }
+      
+      function makeShape_tsc(): Triangle | Square | Circle {
+        const shape: Triangle | Square | Circle = Math.random() < 0.5 ? new Triangle() : Math.random() < 0.5 ? new Square() : new Circle();
+        return shape;
+      }
+      
+      let spyDraw_ts: boolean = false;
+      function draw_ts(shape: Triangle | Square): void {
+        spyDraw_ts = true;
+      }
+      
       it('Triangle | Square | Circle can accept Triangle | Square', () => {
-        expect(() => draw_tsc(makeShape_ts())).to.throw('not define');
+        expect(spyDraw_tsc).to.equal(false);
+        draw_tsc(makeShape_ts())
+        expect(spyDraw_tsc).to.equal(true);
       }),
       it('Triangle | Square cannot accept Triangle | Square | Circle', () => {
         /*
@@ -255,15 +276,42 @@ describe('chapter 7', () => {
         Type 'Circle' is not assignable to type 'Triangle | Square'.
         Property '[SquareType]' is missing in type 'Circle' but required in type 'Square'.
         */
-        // draw_ts(makeShape_tsc());
+      //  draw_ts(makeShape_tsc());
       })
     }),
     describe('subtyping and collections', () => {
+      function makeHearts(): Heart[] {
+        const hearts: Heart[] = [];
+        const heart = new Heart();
+        hearts.push(heart);
+        return hearts;
+      }
+      
+      let spyDrawShape: boolean = false;
+      function drawShapes(shapes: Shape[]): void {
+        spyDrawShape = true;
+      }
+      
+      function makeLinkedListHearts(): LinkedList<Heart> {
+        const heart = new LinkedList<Heart>(new Heart());
+        heart.append(new Heart());
+        return heart;
+      }
+      
+      let spyDrawLinkedListShape: boolean = false;
+      function drawLinkedListShapes(shapes: LinkedList<Shape>): void {
+        spyDrawLinkedListShape = true;
+      }
+      
       it ('array in TypeScript are covariant', () => {
-        expect(() => drawShapes(makeHearts())).to.throw('not define');
+        expect(spyDrawShape).to.equal(false);
+        drawShapes(makeHearts());
+        expect(spyDrawShape).to.equal(true);
       }),
       it('generic collection in TypeScript are covariant', () => {
-        expect(() => drawLinkedListShapes(makeLinkedListHearts())).to.throw('not define');
+        expect(spyDrawLinkedListShape).to.equal(false);
+        drawLinkedListShapes(makeLinkedListHearts());
+        expect(spyDrawLinkedListShape).to.equal(true);
       });
     }),
     describe('subtyping and function return types', () => {
@@ -301,21 +349,7 @@ describe('chapter 7', () => {
         expect(render(new Heart(), useHeart)).to.equal('heart');
         // expect(render(new Shape(), useShape)).to.equal('shape'); // error TS2345: Argument of type 'Shape' is not assignable to parameter of type 'Heart'. Property '[HeartType]' is missing in type 'Shape' but required in type 'Heart'
         expect(render(new Heart(), useShape)).to.equal('shape');
-      })/*,
-      // not working
-      it('TypeScript is bivariant', () => {
-        function beatHeart(heart: Heart): string {
-          expect(heart.beat).to.equal('beating');
-          return 'functional';
-        }
-        
-        function apply(shape: Shape, useFunc: (argument: Shape) => string): string {
-          return useFunc(shape);
-        }
-        
-        expect(apply(new Heart(), beatHeart)).to.equal('functional');
-        expect(apply(new Shape(), beatHeart)).to.equal('functional');
-      })*/
-    })
-  })
+      });
+    });
+  });
 });
