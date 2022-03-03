@@ -183,6 +183,80 @@ describe('object oriented programming', () => {
       let result: IExpression = new Subtraction(three, two);
       
       expect(result.evaluate()).to.equal(1);
-    })
+    });
+  }),
+  describe('composition', () => {
+    class Shape {
+      id: string;
+      
+      constructor(id: string) {
+        this.id = id;
+      }
+    }
+    
+    class Point {
+      x: number;
+      y: number;
+      
+      constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+      }
+    }
+    
+    class Circle extends Shape {
+      center: Point;
+      diameter: number;
+      
+      constructor(id: string, center: Point, diameter: number) {
+        super(id);
+        this.center = center;
+        this.diameter = diameter;
+      }
+    }
+    it('Circle reference should be able to access center Point', () => {
+      let center: Point = new Point(1, 2);
+      let circle: Circle = new Circle('circle', center, 3);
+      
+      expect(circle.center).to.equal(center);
+      expect(circle.center.x).to.equal(1);
+      expect(circle.center.y).to.equal(2);
+    }),
+    describe('adapter pattern', () => {
+      interface ICircle {
+        getCenterX(): number;
+        getCenterY(): number;
+        getRadius(): number;
+      }
+      
+      class CircleAdapter implements ICircle {
+        private circle: Circle;
+        
+        constructor(circle: Circle) {
+          this.circle = circle;
+        }
+        
+        getCenterX(): number {
+          return this.circle.center.x;
+        }
+        
+        getCenterY(): number {
+          return this.circle.center.y;
+        }
+        
+        getRadius(): number {
+          return this.circle.diameter * 2;
+        }
+      }
+      
+      it('should be able to adapted a Circle to ICircle interface', () => {
+        let circle: Circle = new Circle('circle', new Point(1, 2), 3);
+        let adopter: ICircle = new CircleAdapter(circle);
+        
+        expect(adopter.getCenterX()).to.equal(1);
+        expect(adopter.getCenterY()).to.equal(2);
+        expect(adopter.getRadius()).to.equal(6);
+      });
+    });
   })
 })
