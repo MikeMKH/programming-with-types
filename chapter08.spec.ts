@@ -258,5 +258,29 @@ describe('object oriented programming', () => {
         expect(adopter.getRadius()).to.equal(6);
       });
     });
+  }),
+  describe('mix-ins', () => {
+    type FooBehavior = { foo(): string };
+    let fooBehavior: FooBehavior = {
+      foo(): string {
+        return 'foo';
+      }
+    }
+    
+    type BarBehavior = { bar(): string };
+    let barBehavior: BarBehavior = {
+      bar(): string {
+        return 'bar';
+      }
+    }
+    
+    type FooBar = FooBehavior & BarBehavior;
+    
+    it('should be able to mix-in behaviors', () => {
+      let fooBar: FooBar = Object.assign(fooBehavior, barBehavior);
+      
+      expect(fooBar.foo()).to.equal('foo');
+      expect(fooBar.bar()).to.equal('bar');
+    })
   })
 })
