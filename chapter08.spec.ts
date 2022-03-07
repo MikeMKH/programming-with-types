@@ -281,6 +281,46 @@ describe('object oriented programming', () => {
       
       expect(fooBar.foo()).to.equal('foo');
       expect(fooBar.bar()).to.equal('bar');
-    })
-  })
-})
+    });
+  });
+}),
+describe('functional programming', () => {
+  describe('strategy pattern', () => {
+    type Expression = () => number;
+    
+    function makeAddition(left: Expression, right: Expression): Expression {
+      return () => left() + right();
+    }
+    
+    function makeMultiplication(left: Expression, right: Expression): Expression {
+      return () => left() * right();
+    }
+    
+    function makeConstant(value: number): Expression {
+      return () => value;
+    }
+    
+    it('2 + 3 = 5', () => {
+      let two: Expression = makeConstant(2);
+      let three: Expression = makeConstant(3);
+      let result: Expression = makeAddition(two, three);
+      
+      expect(result()).to.equal(5);
+    }),
+    it('2 * 3 = 6', () => {
+      let two: Expression = makeConstant(2);
+      let three: Expression = makeConstant(3);
+      let result: Expression = makeMultiplication(two, three);
+      
+      expect(result()).to.equal(6);
+    }),
+    it('2 + 3 * 4 = 14', () => {
+      let two: Expression = makeConstant(2);
+      let three: Expression = makeConstant(3);
+      let four: Expression = makeConstant(4);
+      let result: Expression = makeAddition(two, makeMultiplication(three, four));
+      
+      expect(result()).to.equal(14);
+    });
+  });
+});
