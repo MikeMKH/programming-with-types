@@ -187,5 +187,98 @@ describe('generic data structures', () => {
       expect(pair.getFirst()).to.equal(10);
       expect(pair.getSecond()).to.equal('hello');
     });
+  }),
+  describe('traversing', () => {
+    describe('BinaryTree', () => {
+      class BinaryTreeNode<T> {
+        value: T;
+        left: BinaryTreeNode<T> | null;
+        right: BinaryTreeNode<T> | null;
+        
+        constructor(value: T, left: BinaryTreeNode<T> | null, right: BinaryTreeNode<T> | null) {
+          this.value = value;
+          this.left = left;
+          this.right = right;
+        }
+      }
+      
+      class BinaryTreeIterator<T> implements Iterable<T> {
+        private readonly root: BinaryTreeNode<T>;
+        
+        constructor(root: BinaryTreeNode<T>) {
+          this.root = root;
+        }
+        
+        *[Symbol.iterator](): Iterator<T> {
+          yield this.root.value;
+          
+          if (this.root.left) {
+            yield* new BinaryTreeIterator(this.root.left);
+          }
+          
+          if (this.root.right) {
+            yield* new BinaryTreeIterator(this.root.right);
+          }
+        }
+      }
+      it('should be able to iterate', () => {
+        const root = new BinaryTreeNode<number>(10, null, null);
+        const left = new BinaryTreeNode<number>(5, null, null);
+        const right = new BinaryTreeNode<number>(15, null, null);
+        root.left = left;
+        root.right = right;
+        
+        const iterator = new BinaryTreeIterator(root);
+        expect([...iterator]).to.deep.equal([10, 5, 15]); 
+      }),
+      it('should be able to iterate in reverse', () => {
+        const root = new BinaryTreeNode<number>(10, null, null);
+        const left = new BinaryTreeNode<number>(5, null, null);
+        const right = new BinaryTreeNode<number>(15, null, null);
+        root.left = left;
+        root.right = right;
+        
+        const iterator = new BinaryTreeIterator(root);
+        expect([...iterator].reverse()).to.deep.equal([15, 5, 10]); 
+      }),
+      it('should be able to iterate in the correct order', () => {
+        const root = new BinaryTreeNode<number>(10, null, null);
+        
+        const left1 = new BinaryTreeNode<number>(5, null, null);
+        const right1 = new BinaryTreeNode<number>(15, null, null);
+        root.left = left1;
+        root.right = right1;
+        
+        const left2 = new BinaryTreeNode<number>(2, null, null);
+        const right2 = new BinaryTreeNode<number>(7, null, null);
+        left1.left = left2;
+        left1.right = right2;
+        
+        const left3 = new BinaryTreeNode<number>(1, null, null);
+        right2.right = left3;
+        
+        const left4 = new BinaryTreeNode<number>(6, null, null);
+        left3.left = left4;
+        
+        const iterator = new BinaryTreeIterator(root);
+        expect([...iterator]).to.deep.equal([10, 5, 2, 7, 1, 6, 15]); 
+      });
+    }),
+    describe('ArrayBackwardsIterator', () => {
+      function* arrayBackwardsIterator<T>(array: T[]): IterableIterator<T> {
+        for (let i = array.length - 1; i >= 0; i--) {
+          yield array[i];
+        }
+      }
+      
+      it('should be able to iterate backwards', () => {
+        const array = [1, 2, 3];
+        expect([...arrayBackwardsIterator(array)]).to.deep.equal([3, 2, 1]);
+      }),
+      it('should be able to iterate backwards in reverse', () => {
+        const array = ['Goodbye', 'World'];
+        expect([...arrayBackwardsIterator(array)].reverse()).to.deep.equal([...array]);
+      })
+    })
   })
 });
