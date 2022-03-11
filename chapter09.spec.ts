@@ -278,7 +278,78 @@ describe('generic data structures', () => {
       it('should be able to iterate backwards in reverse', () => {
         const array = ['Goodbye', 'World'];
         expect([...arrayBackwardsIterator(array)].reverse()).to.deep.equal([...array]);
-      })
+      });
+    });
+  }),
+  describe('streaming data', () => {
+    function* count(): IterableIterator<number> {
+      let i = 1;
+      while (true) {
+        yield i++;
+      }
+    }
+    
+    function* take<T>(count: number, iterable: Iterable<T>): IterableIterator<T> {
+      let i = 0;
+      for (const item of iterable) {
+        if (i >= count) {
+          break;
+        }
+        yield item;
+        i++;
+      }
+    }
+    
+    function* drop<T>(count: number, iterable: Iterable<T>): IterableIterator<T> {
+      let i = 0;
+      for (const item of iterable) {
+        if (i >= count) {
+          yield item;
+        }
+        i++;
+      }
+    }
+    
+    function* I<T>(value: T): IterableIterator<T> {
+      while(true) {
+        yield value;
+      }
+    }
+    
+    it('count should give values in order', () => {
+      let counter = count();
+      expect(counter.next().value).to.equal(1);
+      expect(counter.next().value).to.equal(2);
+      expect(counter.next().value).to.equal(3);
+      expect(counter.next().done).to.equal(false);
+    }),
+    it('take should get n values', () => {
+      let counter = take(3, count());
+      expect([...counter]).to.deep.equal([1, 2, 3]);
+      expect(counter.next().done).to.equal(true);
+    }),
+    it('drop should skip n values', () => {
+      let counter = drop(2, count());
+      expect(counter.next().value).to.equal(3);
+      expect(counter.next().value).to.equal(4);
+      expect(counter.next().done).to.equal(false);
+    }),
+    it('take and drop should get range of n values', () => {
+      let counter = take(5, drop(5, count()));
+      expect([...counter]).to.deep.equal([6, 7, 8, 9, 10]);
+      expect(counter.next().done).to.equal(true);
+    }),
+    it('I should always return value given', () => {
+      const hello = I('Hello');
+      expect(hello.next().value).to.equal('Hello');
+      expect(hello.next().value).to.equal('Hello');
+      expect(hello.next().value).to.equal('Hello');
+      expect(hello.next().done).to.equal(false);
+    }),
+    it('I and take should give n values', () => {
+      const hello = take(3, I('Lily'));
+      expect([...hello]).to.deep.equal(['Lily', 'Lily', 'Lily']);
+      expect(hello.next().done).to.equal(true);
     })
   })
 });
