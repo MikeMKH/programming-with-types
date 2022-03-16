@@ -149,5 +149,66 @@ describe('generic algorithms', () => {
         .result();
       expect(result).to.deep.equal([4, 5]);
     });
+  }),
+  describe('constrained typed parameters', () => {
+    it('should be able to constrain types', () => {
+      interface HasLength {
+        length: number;
+      }
+      
+      function getLength<T extends HasLength>(x: T): number {
+        return x.length;
+      }
+      
+      expect(getLength('hello')).to.equal(5);
+      expect(getLength([1, 2, 3])).to.equal(3);
+      expect(getLength({ length: 5 })).to.equal(5);
+      expect(getLength({ length: 5, toString: () => 'hello' })).to.equal(5);
+      expect(getLength({ length: 5, toString: () => 'hello', valueOf: () => 'hello' })).to.equal(5);      
+    }),
+    describe('ComparisonResult', () => {
+      enum ComparisonResult {
+        LessThan,
+        Equal,
+        GreaterThan
+      }
+      
+      interface IComparable<T> {
+        compareTo(other: T): ComparisonResult;
+      }
+      
+      class ComparableNumber implements IComparable<ComparableNumber> {
+        private value: number;
+        constructor(value: number) {
+          this.value = value;
+        }
+        compareTo(other: ComparableNumber): ComparisonResult {
+          if (this.value < other.value) {
+            return ComparisonResult.LessThan;
+          }
+          if (this.value > other.value) {
+            return ComparisonResult.GreaterThan;
+          }
+          return ComparisonResult.Equal;
+        }
+      }
+      
+      function clamp<T extends IComparable<T>>(x: T, min: T, max: T): T {
+        if (x.compareTo(min) === ComparisonResult.LessThan) {
+          return min;
+        }
+        if (x.compareTo(max) === ComparisonResult.GreaterThan) {
+          return max;
+        }
+        return x;
+      }
+      
+      it('should be able to clamp values', () => {
+        const zero = new ComparableNumber(0);
+        const one = new ComparableNumber(1);
+        const two = new ComparableNumber(2);
+        expect(clamp(one, zero, two)).to.deep.equal(one);
+      });
+    });
   })
 })
