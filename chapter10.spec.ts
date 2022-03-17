@@ -210,5 +210,102 @@ describe('generic algorithms', () => {
         expect(clamp(one, zero, two)).to.deep.equal(one);
       });
     });
+  }),
+  describe('reverse order', () => {
+    interface IReadable<T> {
+      get(): T;
+    }
+    
+    interface IIncrementable<T> {
+      increment(): void;
+    }
+    
+    interface IInputIterator<T> extends IReadable<T>, IIncrementable<T> {
+      equals(other: IInputIterator<T>): boolean;
+    }
+    
+    interface IWriteable<T> {
+      set(value: T): void;
+    }
+    
+    interface IOutputIterator<T> extends IWriteable<T>, IIncrementable<T> {
+      equals(other: IOutputIterator<T>): boolean;
+    }
+    
+    class LinkedListNode<T> {
+      readonly value: T;
+      next: LinkedListNode<T> | null;
+      constructor(value: T, next: LinkedListNode<T> | null = null) {
+        this.value = value;
+        this.next = next;
+      }
+    }
+    
+    class LinkedListInputIterator<T> implements IInputIterator<T> {
+      private node: LinkedListNode<T> | null;
+      constructor(node: LinkedListNode<T> | null) {
+        this.node = node;
+      }
+      
+      get(): T {
+        if (this.node === null) {
+          throw new Error('Iterator is empty');
+        }
+        
+        return this.node.value;
+      }
+      
+      increment(): void {
+        if (this.node === null) {
+          throw new Error('Iterator is empty');
+        }
+        
+        this.node = this.node.next;
+      }
+      
+      equals(other: IInputIterator<T>): boolean {
+        return this.node === (<LinkedListInputIterator<T>>other).node;
+      }
+    }
+    
+    class SpyOutputIterator<T> implements IOutputIterator<T> {
+      readonly value: T[];
+      constructor(value: T[] = []) {
+        this.value = value;
+      }
+      
+      set(value: T): void {
+        this.value.push(value);
+      }
+      
+      increment(): void {
+        // no-op
+      }
+      
+      equals(other: IOutputIterator<T>): boolean {
+        return false;
+      }
+    }
+    
+    function map<T, U>(
+      begin: IInputIterator<T>,
+      end: IInputIterator<T>,
+      output: IOutputIterator<U>,
+      mapper: (value: T) => U
+    ): void {
+      while (!begin.equals(end)) {
+        output.set(mapper(begin.get()));
+        begin.increment();
+        end.increment();
+      }
+    }
+    
+    it('should be able to traverse a linked list', () => {
+      const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3)));
+      const just3 = new LinkedListNode<number>(3, new LinkedListNode<number>(3, new LinkedListNode<number>(3)));
+      const spy = new SpyOutputIterator<number>();
+      map(new LinkedListInputIterator<number>(list), new LinkedListInputIterator<number>(just3), spy, x => x);
+      expect(spy.value).to.deep.equal([1, 2, 3]);
+    })
   })
 })
