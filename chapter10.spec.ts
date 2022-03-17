@@ -264,7 +264,7 @@ describe('generic algorithms', () => {
       }
       
       equals(other: IInputIterator<T>): boolean {
-        return this.node === (<LinkedListInputIterator<T>>other).node;
+        return this.node?.value === (<LinkedListInputIterator<T>>other).node?.value;
       }
     }
     
@@ -296,15 +296,19 @@ describe('generic algorithms', () => {
       while (!begin.equals(end)) {
         output.set(mapper(begin.get()));
         begin.increment();
-        end.increment();
+        output.increment();
       }
     }
     
     it('should be able to traverse a linked list', () => {
-      const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3)));
-      const just3 = new LinkedListNode<number>(3, new LinkedListNode<number>(3, new LinkedListNode<number>(3)));
+      const done = new LinkedListNode<number>(-999);
+      const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3, done)));
       const spy = new SpyOutputIterator<number>();
-      map(new LinkedListInputIterator<number>(list), new LinkedListInputIterator<number>(just3), spy, x => x);
+      map(
+        new LinkedListInputIterator<number>(list),
+        new LinkedListInputIterator<number>(done),
+        spy,
+        x => x);
       expect(spy.value).to.deep.equal([1, 2, 3]);
     })
   })
