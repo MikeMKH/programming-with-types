@@ -233,7 +233,7 @@ describe('generic algorithms', () => {
     }
     
     class LinkedListNode<T> {
-      readonly value: T;
+      value: T;
       next: LinkedListNode<T> | null;
       constructor(value: T, next: LinkedListNode<T> | null = null) {
         this.value = value;
@@ -300,8 +300,61 @@ describe('generic algorithms', () => {
       }
     }
     
+    interface IForwardIterator<T> extends IReadable<T>, IWriteable<T>, IIncrementable<T> {
+      equals(other: IForwardIterator<T>): boolean;
+      clone(): IForwardIterator<T>;
+    }
+    
+    class LinkedListForwardIterator<T> implements IForwardIterator<T> {
+      private node: LinkedListNode<T> | null;
+      constructor(node: LinkedListNode<T> | null) {
+        this.node = node;
+      }
+      
+      get(): T {
+        if (this.node === null) {
+          throw new Error('Iterator is empty');
+        }
+        return this.node.value;
+      }
+      
+      set(value: T): void {
+        if (this.node === null) {
+          throw new Error('Iterator is empty');
+        }
+        this.node.value = value;
+      }
+      
+      increment(): void {
+        if (this.node === null) return;
+        this.node = this.node.next;
+      }
+      
+      equals(other: IForwardIterator<T>): boolean {
+        return this.node?.value === (<LinkedListForwardIterator<T>>other).node?.value;
+      }
+      
+      clone(): IForwardIterator<T> {
+        return new LinkedListForwardIterator<T>(this.node);
+      }
+    }
+    
+    function find<T>(
+      begin: IForwardIterator<T>,
+      end: IForwardIterator<T>,
+      predicate: (value: T) => boolean
+    ): IForwardIterator<T> {
+      while (!begin.equals(end)) {
+        if (predicate(begin.get())) {
+          return begin;
+        }
+        begin.increment();
+      }
+      return end;
+    }
+    
     it('should be able to traverse a linked list', () => {
-      const done = new LinkedListNode<number>(-999);
+      const done = new LinkedListNode<number>(Number.MIN_VALUE);
       const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3, done)));
       const spy = new SpyOutputIterator<number>();
       map(
@@ -310,6 +363,25 @@ describe('generic algorithms', () => {
         spy,
         x => x);
       expect(spy.value).to.deep.equal([1, 2, 3]);
+    }),
+    it('should be able to find a value in a linked list', () => {
+      const done = new LinkedListNode<number>(Number.MIN_VALUE);
+      const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3, done)));
+      const spy = new SpyOutputIterator<number>();
+      const found = find(
+        new LinkedListForwardIterator<number>(list),
+        new LinkedListForwardIterator<number>(done),
+        x => x === 2);
+      expect(found.get()).to.equal(2);
+      
+      found.set(4);
+      expect(found.get()).to.equal(4);
+      
+      const findNext = find(
+        new LinkedListForwardIterator<number>(list),
+        new LinkedListForwardIterator<number>(done),
+        x => x === 4);
+      expect(findNext.get()).to.equal(4);
     })
   })
 })
