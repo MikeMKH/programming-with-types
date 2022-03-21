@@ -414,14 +414,17 @@ describe('generic algorithms', () => {
           return begin;
         }
         
-        const temp = begin.get();
-        begin.set(end.get());
-        end.set(temp);
-        
+        swap(begin, end);
         begin.increment();
       }
       
       return begin;
+      
+      function swap<T>(a: IBackwardsIterator<T>, b: IBackwardsIterator<T>): void {
+        const temp = begin.get();
+        begin.set(end.get());
+        end.set(temp);
+      }
     }
     
     it('should be able to traverse a linked list', () => {
