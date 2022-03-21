@@ -339,6 +339,57 @@ describe('generic algorithms', () => {
       }
     }
     
+    interface IBackwardsIterator<T> extends IReadable<T>, IWriteable<T>, IIncrementable<T> {
+      decrement(): void;
+      equals(other: IBackwardsIterator<T>): boolean;
+      clone(): IBackwardsIterator<T>;
+    }
+    
+    class ArrayIterator<T> implements IBackwardsIterator<T> {
+      private index: number;
+      private array: T[];
+      constructor(array: T[], index: number = 0) {
+        this.array = array;
+        this.index = index;
+      }
+      
+      get(): T {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        return this.array[this.index];
+      }
+      
+      set(value: T): void {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        this.array[this.index] = value;
+      }
+      
+      decrement(): void {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        this.index--;
+      }
+      
+      increment(): void {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        this.index++;
+      }
+      
+      equals(other: IBackwardsIterator<T>): boolean {
+        return this.index === (<ArrayIterator<T>>other).index;
+      }
+      
+      clone(): IBackwardsIterator<T> {
+        return new ArrayIterator(this.array, this.index);
+      }
+    }
+    
     function find<T>(
       begin: IForwardIterator<T>,
       end: IForwardIterator<T>,
@@ -351,6 +402,26 @@ describe('generic algorithms', () => {
         begin.increment();
       }
       return end;
+    }
+    
+    function reverse<T>(
+      begin: IBackwardsIterator<T>,
+      end: IBackwardsIterator<T>
+    ): IBackwardsIterator<T> {
+      while (!begin.equals(end)) {
+        end.decrement();
+        if (begin.equals(end)) {
+          return begin;
+        }
+        
+        const temp = begin.get();
+        begin.set(end.get());
+        end.set(temp);
+        
+        begin.increment();
+      }
+      
+      return begin;
     }
     
     it('should be able to traverse a linked list', () => {
@@ -382,6 +453,13 @@ describe('generic algorithms', () => {
         new LinkedListForwardIterator<number>(done),
         x => x === 4);
       expect(findNext.get()).to.equal(4);
+    }),
+    it('should be able to reverse an array', () => {
+      const array = [1, 2, 3];
+      reverse(
+        new ArrayIterator<number>(array),
+        new ArrayIterator<number>(array, array.length));
+      expect(array).to.deep.equal([3, 2, 1]);
     })
   })
 })
