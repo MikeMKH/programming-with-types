@@ -345,7 +345,7 @@ describe('generic algorithms', () => {
       clone(): IBackwardsIterator<T>;
     }
     
-    class ArrayIterator<T> implements IBackwardsIterator<T> {
+    class BackwardsArrayIterator<T> implements IBackwardsIterator<T> {
       private index: number;
       private array: T[];
       constructor(array: T[], index: number = 0) {
@@ -382,11 +382,11 @@ describe('generic algorithms', () => {
       }
       
       equals(other: IBackwardsIterator<T>): boolean {
-        return this.index === (<ArrayIterator<T>>other).index;
+        return this.index === (<BackwardsArrayIterator<T>>other).index;
       }
       
       clone(): IBackwardsIterator<T> {
-        return new ArrayIterator(this.array, this.index);
+        return new BackwardsArrayIterator(this.array, this.index);
       }
     }
     
@@ -427,6 +427,83 @@ describe('generic algorithms', () => {
       }
     }
     
+    interface IRandomAccessIterator<T> extends IReadable<T>, IWriteable<T>, IIncrementable<T> {
+      decrement(): void;
+      equals(other: IRandomAccessIterator<T>): boolean;
+      clone(): IRandomAccessIterator<T>;
+      move(n: number): void;
+      distance(other: IRandomAccessIterator<T>): number;
+    }
+    
+    class RandomArrayIterator<T> implements IRandomAccessIterator<T> {
+      private array: T[];
+      private index: number;
+      constructor(array: T[], index: number = 0) {
+        this.array = array;
+        this.index = index;
+      }
+      
+      get(): T {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        return this.array[this.index];
+      }
+      
+      set(value: T): void {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        this.array[this.index] = value;
+      }
+      
+      decrement(): void {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        this.index--;
+      }
+      
+      increment(): void {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        this.index++;
+      }
+      
+      equals(other: IRandomAccessIterator<T>): boolean {
+        return this.index === (<RandomArrayIterator<T>>other).index;
+      }
+      
+      move(n: number): void {
+        if (this.index < 0) {
+          throw new Error('Iterator is empty');
+        }
+        this.index += n;
+      }
+      
+      distance(other: IRandomAccessIterator<T>): number { 
+        return (<RandomArrayIterator<T>>other).index - this.index;
+      }
+      
+      clone(): IRandomAccessIterator<T> {
+        return new RandomArrayIterator(this.array, this.index);
+      }
+    }
+    
+    function elementAt<T>(
+      begin: IRandomAccessIterator<T>,
+      end: IRandomAccessIterator<T>,
+      index: number
+    ): IRandomAccessIterator<T> {
+      const distance = begin.distance(end);
+      if (index > distance) {
+        throw new Error('Index out of bounds');
+      }
+      begin.move(index);
+      return begin;
+    }
+    
     it('should be able to traverse a linked list', () => {
       const done = new LinkedListNode<number>(Number.MIN_VALUE);
       const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3, done)));
@@ -460,9 +537,39 @@ describe('generic algorithms', () => {
     it('should be able to reverse an array', () => {
       const array = [1, 2, 3];
       reverse(
-        new ArrayIterator<number>(array),
-        new ArrayIterator<number>(array, array.length));
+        new BackwardsArrayIterator<number>(array),
+        new BackwardsArrayIterator<number>(array, array.length));
       expect(array).to.deep.equal([3, 2, 1]);
+    }),
+    it('should be able to get an element in an array', () => {
+      const array = [1, 2, 3];
+      
+      const first = elementAt(
+        new RandomArrayIterator<number>(array),
+        new RandomArrayIterator<number>(array, array.length),
+        1);
+      expect(first.get()).to.equal(2);
+      
+      const last = elementAt(
+        new RandomArrayIterator<number>(array),
+        new RandomArrayIterator<number>(array, array.length),
+        array.length - 1);
+      expect(last.get()).to.equal(3);
+    }),
+    it('should be able to iterate through elements with elementAt', () => {
+      const array = ['good', 'bad', 'ugly'];
+      const start = new RandomArrayIterator<string>(array);
+      const end = new RandomArrayIterator<string>(array, array.length);
+      
+      let element = elementAt(start, end, 0);
+      expect(element.get()).to.equal('good');
+      
+      element = elementAt(start, end, 1);
+      expect(element.get()).to.equal('bad');
+      
+      element = elementAt(start, end, 1);
+      expect(element.get()).to.equal('ugly');
+        
     })
   })
 })
