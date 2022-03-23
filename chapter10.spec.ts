@@ -504,6 +504,55 @@ describe('generic algorithms', () => {
       return begin;
     }
     
+    function nthLastForwardIterator<T>(
+      begin: IForwardIterator<T>,
+      end: IForwardIterator<T>,
+      n: number
+    ): IForwardIterator<T> {
+      const result: IForwardIterator<T> = begin.clone();
+      let size: number = 0;
+      
+      while(!begin.equals(end)) {
+        begin.increment();
+        size++;
+      }
+      
+      let index: number = 1;
+      while(!result.equals(end) && size - n > index) {
+        result.increment();
+        index++;
+      }
+      
+      return result;
+    }
+    
+    function nthLastBackwardIterator<T>(
+      begin: IBackwardsIterator<T>,
+      end: IBackwardsIterator<T>,
+      n: number
+    ): IBackwardsIterator<T> {
+      while(!begin.equals(end) && n >= 0) {
+        end.decrement();
+        n--;
+      }
+      return end;
+    }
+    
+    function isBackwardsIterator<T>(iter: IForwardIterator<T>): iter is IBackwardsIterator<T> {
+      return "decrement" in iter;
+    }
+    
+    function nthLast<T>(
+      begin: IForwardIterator<T>,
+      end: IForwardIterator<T>,
+      n: number
+    ): IForwardIterator<T> {
+      if(isBackwardsIterator(begin) && isBackwardsIterator(end)) {
+        return nthLastBackwardIterator(begin, end, n);
+      }
+      return nthLastForwardIterator(begin, end, n);
+    }
+      
     it('should be able to traverse a linked list', () => {
       const done = new LinkedListNode<number>(Number.MIN_VALUE);
       const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3, done)));
@@ -568,8 +617,40 @@ describe('generic algorithms', () => {
       expect(element.get()).to.equal('bad');
       
       element = elementAt(start, end, 1);
-      expect(element.get()).to.equal('ugly');
-        
+      expect(element.get()).to.equal('ugly');  
+    }),
+    it('should be able to get nth last element with nthLastForwardIterator', () => {
+      const done = new LinkedListNode<number>(Number.MIN_VALUE);
+      const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3, done)));
+      const nth = nthLastForwardIterator(
+        new LinkedListForwardIterator<number>(list),
+        new LinkedListForwardIterator<number>(done),
+        1);
+      expect(nth.get()).to.equal(2);
+    }),
+    it('should be able to get nth last element with nthLastBackwardIterator', () => {
+      const array = [1, 2, 3];
+      const nth = nthLastBackwardIterator(
+        new BackwardsArrayIterator<number>(array),
+        new BackwardsArrayIterator<number>(array, array.length),
+        1);
+      expect(nth.get()).to.equal(2);
+    }),
+    it('should be able to get nth last element with nthLast', () => {
+      const array = [1, 2, 3];
+      const backwards = nthLast(
+        new BackwardsArrayIterator<number>(array),
+        new BackwardsArrayIterator<number>(array, array.length),
+        1);
+      expect(backwards.get()).to.equal(2);
+      
+      const done = new LinkedListNode<number>(Number.MIN_VALUE);
+      const list = new LinkedListNode<number>(1, new LinkedListNode<number>(2, new LinkedListNode<number>(3, done)));
+      const forward = nthLast(
+        new LinkedListForwardIterator<number>(list),
+        new LinkedListForwardIterator<number>(done),
+        1);
+      expect(forward.get()).to.equal(2);
     })
   })
 })
