@@ -11,6 +11,7 @@ describe('higher kinded types', () => {
       }
       
       const howManyLetters = (s: string | undefined) => map(s, s => s.length);
+      
       it('should map against a type', () => {
         const lily = 'lily';
         expect(howManyLetters(lily)).to.equal(4);
@@ -18,6 +19,31 @@ describe('higher kinded types', () => {
       it('should map against an undefined', () => {
         const who = undefined;
         expect(howManyLetters(who)).to.equal(undefined);
+      }),
+      describe('processing', () => {
+        function square(x: number): number {
+          return x**2;
+        }
+        
+        function stringify(x: number): string {
+          return x.toString();
+        }
+        it('should be able to combine functions', () => {
+          function readNumber_undefined(): undefined {
+            return undefined;
+          }
+          
+          function readNumber_3(): number {
+            return 3;
+          }
+          
+          function process(func: () => number | undefined) : string | undefined {
+            return map(map(func(), square), stringify);
+          }
+          
+          expect(process(readNumber_undefined)).to.equal(undefined);
+          expect(process(readNumber_3)).to.equal('9');
+        })
       })
     })
   }),
