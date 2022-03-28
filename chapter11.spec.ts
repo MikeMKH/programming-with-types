@@ -43,9 +43,9 @@ describe('higher kinded types', () => {
           
           expect(process(readNumber_undefined)).to.equal(undefined);
           expect(process(readNumber_3)).to.equal('9');
-        })
-      })
-    })
+        });
+      });
+    });
   }),
   describe('Box', () => {
     class Box<T> {
@@ -71,7 +71,62 @@ describe('higher kinded types', () => {
         expect(map(abc, howManyLetters).getValue()).to.equal(3);
         expect(map(abc, howManyLetters)).to.be.instanceof(Box);
         expect(map(abc, howManyLetters)).to.deep.equal(new Box(3));
-      })
+      });
+    });
+  }),
+  describe('Functor', () => {
+    interface Functor<T> {
+      map<U>(f: (x: T) => U): Functor<U>;
+    }
+    describe('Box', () => {
+      class Box<T> implements Functor<T> {
+        constructor(private value: T) {}
+        getValue(): T {
+          return this.value;
+        }
+        map<U>(f: (x: T) => U): Box<U> {
+          return new Box(f(this.value));
+        }
+      }
+        
+      it('mapping identity should give given value back', () => {
+        function identity<T>(x: T) { return x; }
+        const lily = new Box('lily');
+        const seven = new Box(7);
+        
+        expect(lily.map(identity).getValue()).to.equal('lily');
+        expect(lily.map(identity)).to.be.instanceof(Box);
+        expect(seven.map(identity).getValue()).to.equal(7);
+        expect(seven.map(identity)).to.be.instanceof(Box);
+      }),
+      it('mapping should give expected value back', () => {
+        function square(x: number) { return x**2; }
+        const two = new Box(2);
+        const three = new Box(3);
+        
+        expect(two.map(square).getValue()).to.equal(4);
+        expect(two.map(square)).to.be.instanceof(Box);
+        expect(three.map(square).getValue()).to.equal(9);
+        expect(three.map(square)).to.be.instanceof(Box);
+      }),
+      it('should be able to implement a Writer', () => {
+        class Writer<T> implements Functor<T> {
+          constructor(private value: T, private log: string = '') {}
+          getValue(): T {
+            return this.value;
+          }
+          getLog(): string {
+            return this.log;
+          }
+          map<U>(f: (x: T) => U): Writer<U> {
+            const result: U = f(this.value);
+            return new Writer(result, this.log + '\n' + `${this.value} => ${result}`);
+          }
+        }
+        
+        const lily = new Writer('lily');
+        expect(lily.map(s => s.length).map(s => s**2).getLog()).to.equal('\nlily => 4\n4 => 16');
+      });
     })
   })
 })
