@@ -141,6 +141,42 @@ describe('higher kinded types', () => {
           expect(map(add, stringify)(1, 2)).to.equal('3');
         });
       });
+    }),
+    describe('Reader', () => {
+      interface IReader<T> {
+        read(): T;
+      }
+      
+      class IdentityReader<T> implements IReader<T> {
+        constructor(private value: T) {}
+        read(): T {
+          return this.value;
+        }
+      }
+      
+      class SquareReader implements IReader<number> {
+        constructor(private value: number) {}
+        read(): number {
+          return this.value**2;
+        }
+      }
+      
+      describe('map', () => {
+        function map<T, U>(reader: IReader<T>, f: (x: T) => U): IReader<U> {
+          return new IdentityReader(f(reader.read()));
+        }
+        
+        it('should be able to map', () => {
+          const lily = new IdentityReader('lily');
+          const howManyLetters = (s: { length: number }) => s.length;
+          expect(map(lily, howManyLetters).read()).to.equal(4);
+        }),
+        it('should be able to combine readers', () => {
+          const nine = new SquareReader(3);
+          const increment = (x: number) => x + 1;
+          expect(map(nine, increment).read()).to.equal(10);
+        })
+      })
     })
   })
 })
