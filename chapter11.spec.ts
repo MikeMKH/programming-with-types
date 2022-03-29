@@ -127,6 +127,20 @@ describe('higher kinded types', () => {
         const lily = new Writer('lily');
         expect(lily.map(s => s.length).map(s => s**2).getLog()).to.equal('\nlily => 4\n4 => 16');
       });
+    }),
+    describe('functions', () => {      
+      describe('map', () => {
+        function map<T, U>(f: (arg1: T, arg2: T) => T, func: (value: T) => U): (arg1: T, arg2: T) => U {
+          return (arg1, arg2) => func(f(arg1, arg2));
+        }
+        
+        it('should be able to combine functions', () => {
+          const add = (x: number, y: number): number => x + y;
+          const stringify = (x: number): string => x.toString();
+          
+          expect(map(add, stringify)(1, 2)).to.equal('3');
+        });
+      });
     })
   })
 })
