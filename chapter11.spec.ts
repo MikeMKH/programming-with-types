@@ -175,7 +175,38 @@ describe('higher kinded types', () => {
           const nine = new SquareReader(3);
           const increment = (x: number) => x + 1;
           expect(map(nine, increment).read()).to.equal(10);
-        })
+        });
+      });
+    });
+  }),
+  describe('Monad', () => {
+    interface IMonad<T> {
+      map<U>(f: (x: T) => U): IMonad<U>;
+      bind<U>(f: (x: T) => IMonad<U>): IMonad<U>;
+    }
+    
+    describe('Box', () => {
+      class Box<T> implements IMonad<T> {
+        constructor(private value: T) {}
+        getValue(): T {
+          return this.value;
+        }
+        map<U>(f: (x: T) => U): Box<U> {
+          return new Box(f(this.value));
+        }
+        bind<U>(f: (x: T) => Box<U>): Box<U> {
+          return f(this.value);
+        }
+      }
+      
+      it('should be able map and bind functions', () => {
+        const lily = new Box('lily');
+        const howManyLetters: (s: { length: number }) => number =
+          (s: { length: number }) => s.length;
+        const squareBox: (x: number) => Box<number> = 
+          (x: number) => new Box<number>(x**2);
+        
+        expect(lily.map(howManyLetters).bind(squareBox).getValue()).to.equal(16);
       })
     })
   })
