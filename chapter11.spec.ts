@@ -183,6 +183,7 @@ describe('higher kinded types', () => {
     interface IMonad<T> {
       map<U>(f: (x: T) => U): IMonad<U>;
       bind<U>(f: (x: T) => IMonad<U>): IMonad<U>;
+      unit<T>(value: T): IMonad<T>;
     }
     
     describe('Box', () => {
@@ -197,17 +198,63 @@ describe('higher kinded types', () => {
         bind<U>(f: (x: T) => Box<U>): Box<U> {
           return f(this.value);
         }
+        unit<T>(value: T): Box<T> {
+          return new Box(value);
+        }
+        static unit<T>(value: T): Box<T> {
+          return new Box(value);
+        }
       }
       
       it('should be able map and bind functions', () => {
-        const lily = new Box('lily');
+        const lily = Box.unit<string>('lily');
         const howManyLetters: (s: { length: number }) => number =
           (s: { length: number }) => s.length;
         const squareBox: (x: number) => Box<number> = 
-          (x: number) => new Box<number>(x**2);
+          (x: number) => Box.unit<number>(x**2);
         
         expect(lily.map(howManyLetters).bind(squareBox).getValue()).to.equal(16);
-      })
+      }),
+      it('should be able to chain functions', () => {
+        const incrementBox: (x: number) => Box<number> =
+          (x: number) => Box.unit<number>(x + 1);
+        const squareBox: (x: number) => Box<number> =
+          (x: number) => Box.unit<number>(x**2);
+        const add2: (x: number) => number =
+          (x: number) => x + 2;
+        
+        let one = Box.unit<number>(1);
+        
+        expect(
+          one
+            .map(add2)
+            .bind(incrementBox)
+            .bind(squareBox)
+            .getValue()
+        ).to.equal(16);
+      }),
+      it('Box should act like an Array for chaining', () => {
+        const add8 = (x: number) => x + 8;
+        const squareBox: (x: number) => Box<number> =
+          (x: number) => Box.unit<number>(x**2);
+        const squareArray: (x: number) => number[] =
+          (x: number) => [x**2];
+        
+        let box = Box.unit<number>(1);
+        let array = [1];
+        
+        expect(
+          box
+            .map(add8)
+            .bind(squareBox)
+            .getValue()
+        ).to.equal(
+          array
+            .map(add8)
+            .flatMap(squareArray)
+            .reduce((m, x) => x, 0)
+        );
+      });
     })
   })
 })
