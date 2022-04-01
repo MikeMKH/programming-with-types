@@ -255,6 +255,64 @@ describe('higher kinded types', () => {
             .reduce((m, x) => x, 0)
         );
       });
+    }),
+    describe('Lazy', () => {
+      type Lazy<T> = () => T;
+      
+      function map<T, U>(f: (x: T) => U, lazy: Lazy<T>): Lazy<U> {
+        return () => f(lazy());
+      }
+      
+      function unit<T>(value: T): Lazy<T> {
+        return () => value;
+      }
+      
+      function bind<T, U>(f: (x: T) => Lazy<U>, lazy: Lazy<T>): Lazy<U> {
+        return f(lazy());
+      }
+      
+      describe('map', () => {
+        it('should be able to map', () => {
+          const three = unit(3);
+          const increment = (x: number) => x + 1;
+          expect(map(increment, three)()).to.equal(4);
+        }),
+        it('should be able to transform', () => {
+          const lily = unit('lily');
+          const howManyLetters = (s: { length: number }) => s.length;
+          expect(map(howManyLetters, lily)()).to.equal(4);
+        });
+      }),
+      describe('bind', () => {
+        it('should be able to chain functions', () => {
+          const incrementLazy: (x: number) => Lazy<number> =
+            (x: number) => unit<number>(x + 1);
+          const squareLazy: (x: number) => Lazy<number> =
+            (x: number) => unit<number>(x**2);
+          const add2: (x: number) => number =
+            (x: number) => x + 2;
+          
+          const one = unit<number>(1);
+          const process = 
+            bind(squareLazy,
+              bind(incrementLazy,
+                map(add2, one)));
+          
+          expect(process()).to.equal(16);
+        }),
+        describe('unit', () => {
+          it('should be able to create a Lazy', () => {
+            const three = unit(3);
+            expect(three()).to.equal(3);
+            
+            const lily = unit('Lily');
+            expect(lily()).to.equal('Lily');
+            
+            const dog = unit({ name: 'Lily', age: 3, breed: 'Rat Terrier' });
+            expect(dog().breed).to.equal('Rat Terrier');
+          })
+        })
+      })
     })
   })
 })
